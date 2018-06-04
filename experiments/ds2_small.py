@@ -4,7 +4,7 @@ from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.optimizers.lr_policies import poly_decay
 
 
 base_model = Speech2Text
@@ -29,7 +29,7 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.0001,
-    "p": 0.5,
+    "power": 0.5,
   },
   "dtype": tf.float32,
   # weight decay
