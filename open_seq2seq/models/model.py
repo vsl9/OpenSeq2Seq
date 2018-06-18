@@ -304,9 +304,11 @@ class Model:
             input_tensors,
             gpu_id=gpu_cnt,
           )
+          '''
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
             raise ValueError('Decoder samples have to be either None or list')
+          '''
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop

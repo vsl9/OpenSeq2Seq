@@ -10,6 +10,7 @@ import numpy as np
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
+import pickle
 
 
 def sparse_tensor_to_chars(tensor, idx2char):
@@ -55,6 +56,11 @@ class Speech2Text(EncoderDecoderModel):
     y_one_sample = y[0]
     len_y_one_sample = len_y[0]
     decoded_sequence_one_batch = decoded_sequence[0]
+
+
+    return { 
+      'Output shape': decoded_sequence_one_batch.get_shape(), 
+    }
 
     # we also clip the sample by the correct length
     true_text = "".join(map(
@@ -113,20 +119,35 @@ class Speech2Text(EncoderDecoderModel):
 
   def infer(self, input_values, output_values):
     preds = []
-    decoded_sequence = output_values[0]
+    decoded_sequence = output_values
+    '''
     decoded_texts = sparse_tensor_to_chars(
       decoded_sequence,
       self.get_data_layer().params['idx2char'],
     )
-    for sample_id in range(len(decoded_texts)):
-      preds.append("".join(decoded_texts[sample_id]))
-    return preds
+    '''
+    print( decoded_sequence.shape )
+    '''
+    for sample_id in range(len(decoded_sequence)):
+      preds.append(decoded_sequence[sample_id])
+    '''
+    return [decoded_sequence]
 
   def finalize_inference(self, results_per_batch, output_file):
     preds = []
 
     for result in results_per_batch:
       preds.extend(result)
+
+    res = {}
+    for idx, filename in enumerate(self.get_data_layer().all_files):
+      res[filename] = preds[idx]
+    
+    with open(output_file, 'wb') as f:
+      pickle.dump(res, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    
+    '''
     pd.DataFrame(
       {
         'wav_filename': self.get_data_layer().all_files,
@@ -134,6 +155,7 @@ class Speech2Text(EncoderDecoderModel):
       },
       columns=['wav_filename', 'predicted_transcript'],
     ).to_csv(output_file, index=False)
+    '''
 
   def get_num_objects_per_step(self, worker_id=0):
     """Returns number of audio frames in current batch."""

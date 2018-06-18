@@ -159,7 +159,7 @@ class EncoderDecoderModel(Model):
       if self.mode == "train":
         decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
-      decoder_samples = decoder_output.get("samples", None)
+      decoder_samples = decoder_output.get("logits", None)
 
       if self.mode == "train" or self.mode == "eval":
         with tf.variable_scope("Loss"):
