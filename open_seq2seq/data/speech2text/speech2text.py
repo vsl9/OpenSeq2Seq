@@ -20,7 +20,7 @@ class Speech2TextDataLayer(DataLayer):
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
-      'input_type': ['spectrogram', 'mfcc'],
+      'input_type': ['spectrogram', 'mfcc', 'logfbank'],
       'vocab_file': str,
       'dataset_files': list,
     })
@@ -139,7 +139,7 @@ class Speech2TextDataLayer(DataLayer):
         padded_shapes=([None, self.params['num_audio_features']], 1)
       )
 
-    self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE).make_initializable_iterator()
 
     if self.params['mode'] != 'infer':
       x, x_length, y, y_length = self._iterator.get_next()

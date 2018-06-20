@@ -118,7 +118,7 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   if pad_to > 0:
     if length % pad_to != 0:
       pad_size = (pad_to - length % pad_to) * n_window_stride
-      signal = np.pad(signal, (0, pad_size), mode='reflect')
+      signal = np.pad(signal, (0, pad_size), mode='constant')
 
   if features_type == 'spectrogram':
     frames = psf.sigproc.framesig(sig=signal,
@@ -146,6 +146,15 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
                         preemph=0.97,
                         ceplifter=2*num_features,
                         appendEnergy=False)
+  elif features_type == 'logfbank':
+    features = psf.logfbank(signal=signal,
+                            samplerate=fs,
+                            winlen=window_size,
+                            winstep=window_stride,
+                            nfilt=num_features,
+                            nfft=512,
+                            lowfreq=0, highfreq=None,
+                            preemph=0.97)
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
