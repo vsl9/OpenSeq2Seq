@@ -337,26 +337,29 @@ class DeepSpeech2Encoder(Encoder):
         bn_epsilon=bn_epsilon,
       )
 
-    # Reshape [B, T, C] --> [B*T, C]
-    c = top_layer.get_shape().as_list()[-1]
-    top_layer = tf.reshape(top_layer, [-1, c])
+    if self.params['n_hidden'] > 0:
+      # Reshape [B, T, C] --> [B*T, C]
+      c = top_layer.get_shape().as_list()[-1]
+      top_layer = tf.reshape(top_layer, [-1, c])
 
-    # --- hidden layer with clipped ReLU activation and dropout-----------------
-    top_layer = tf.layers.dense(
-      inputs=top_layer,
-      units=self.params['n_hidden'],
-      kernel_regularizer=regularizer,
-      activation=self.params['activation_fn'],
-      name='fully_connected',
-    )
-    outputs = tf.nn.dropout(x=top_layer, keep_prob=dropout_keep_prob)
+      # --- hidden layer with clipped ReLU activation and dropout-----------------
+      top_layer = tf.layers.dense(
+        inputs=top_layer,
+        units=self.params['n_hidden'],
+        kernel_regularizer=regularizer,
+        activation=self.params['activation_fn'],
+        name='fully_connected',
+      )
+      outputs = tf.nn.dropout(x=top_layer, keep_prob=dropout_keep_prob)
 
-    # reshape from  [B*T,A] --> [B, T, A].
-    # Output shape: [batch_size, n_steps, n_hidden]
-    outputs = tf.reshape(
-      outputs,
-      [batch_size, -1, self.params['n_hidden']],
-    )
+      # reshape from  [B*T,A] --> [B, T, A].
+      # Output shape: [batch_size, n_steps, n_hidden]
+      outputs = tf.reshape(
+        outputs,
+        [batch_size, -1, self.params['n_hidden']],
+      )
+    else:
+      outputs = top_layer
 
     return {
       'outputs': outputs,
