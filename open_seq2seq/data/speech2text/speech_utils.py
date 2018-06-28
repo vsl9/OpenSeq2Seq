@@ -77,7 +77,7 @@ def augment_audio_signal(signal, fs, augmentation):
 
 def get_speech_features(signal, fs, num_features, pad_to=8,
                         features_type='spectrogram',
-                        window_size=20e-3,
+                        window_size=25e-3,
                         window_stride=10e-3,
                         augmentation=None):
   """Function to convert raw audio signal to numpy array of features.
@@ -108,6 +108,9 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
                        'when augmentation it is not None')
     signal = augment_audio_signal(signal, fs, augmentation)
 
+  # signal = ((signal.astype(np.float32) / np.max(np.abs(signal))) * 32767.0).astype(np.int16)
+  
+
   n_window_size = int(fs * window_size)
   n_window_stride = int(fs * window_stride)
 
@@ -118,7 +121,7 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   if pad_to > 0:
     if length % pad_to != 0:
       pad_size = (pad_to - length % pad_to) * n_window_stride
-      signal = np.pad(signal, (0, pad_size), mode='reflect')
+      # signal = np.pad(signal, (0, pad_size), mode='reflect')
 
   if features_type == 'spectrogram':
     frames = psf.sigproc.framesig(sig=signal,
@@ -149,7 +152,7 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
-  assert features.shape[0] % pad_to == 0
+  # assert features.shape[0] % pad_to == 0
   m = np.mean(features)
   s = np.std(features)
   features = (features - m) / s

@@ -139,10 +139,11 @@ class Speech2Text(EncoderDecoderModel):
     for result in results_per_batch:
       preds.extend(result)
 
-    res = {}
+    res = zip(self.get_data_layer().all_files, preds)
+    '''
     for idx, filename in enumerate(self.get_data_layer().all_files):
       res[filename] = preds[idx]
-    
+    '''
     with open(output_file, 'wb') as f:
       pickle.dump(res, f, protocol=pickle.HIGHEST_PROTOCOL)
 
