@@ -13,7 +13,8 @@ base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 8,
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 32,
+  "iter_size": 4,
 
   "num_epochs": 50,
 
@@ -59,8 +60,8 @@ base_params = {
         "num_channels": 32, "padding": "SAME"
       },
     ],
-    "num_rnn_layers": 5,
-    "rnn_cell_dim": 1024,
+    "num_rnn_layers": 4,
+    "rnn_cell_dim": 1536,
 
     "use_cudnn_rnn": True,
     "rnn_type": "cudnn_gru",
@@ -77,7 +78,7 @@ base_params = {
 
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
-    "use_language_model": True,
+    "use_language_model": False,
 
     # params for decoding the sequence with language model
     "beam_width": 512,
