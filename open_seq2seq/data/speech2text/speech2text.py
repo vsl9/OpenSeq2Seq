@@ -191,7 +191,7 @@ class Speech2TextDataLayer(DataLayer):
       target text as `np.array` of ids, target text length.
     """
 
-    if element = 'tmp':
+    if element == 'tmp':
       fs = 16000
       audio = (np.random.randn(int(self.params['dummy_duration']*fs)) * 32767.0).astype(np.int16)
       pad_to = self.params.get('pad_to', 8)
