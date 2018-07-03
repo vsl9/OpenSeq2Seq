@@ -10,7 +10,7 @@ import tensorflow as tf
 import pandas as pd
 
 from open_seq2seq.data.data_layer import DataLayer
-from .speech_utils import get_speech_features_from_file
+from .speech_utils import get_speech_features_from_file, get_speech_features
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
@@ -30,6 +30,9 @@ class Speech2TextDataLayer(DataLayer):
     return dict(DataLayer.get_optional_params(), **{
       'augmentation': dict,
       'pad_to': int,
+      'dummy_batches': int,
+      'dummy_duration': float,
+
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -64,20 +67,28 @@ class Speech2TextDataLayer(DataLayer):
     # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
-    self._files = None
-    for csv in params['dataset_files']:
-      files = pd.read_csv(csv, encoding='utf-8')
-      if self._files is None:
-        self._files = files
-      else:
-        self._files = self._files.append(files)
+    self.params['dummy_batches'] = params.get('dummy_batches', None)
 
-    if self.params['mode'] != 'infer':
-      cols = ['wav_filename', 'transcript']
+
+
+    if self.params['dummy_batches']:
+      self.all_files = ['tmp'] * (self.params['batch_size'] * self.params['dummy_batches'])
     else:
-      cols = 'wav_filename'
+      self._files = None
+      for csv in params['dataset_files']:
+        files = pd.read_csv(csv, encoding='utf-8')
+        if self._files is None:
+          self._files = files
+        else:
+          self._files = self._files.append(files)
 
-    self.all_files = self._files.loc[:, cols].values
+      if self.params['mode'] != 'infer':
+        cols = ['wav_filename', 'transcript']
+      else:
+        cols = 'wav_filename'
+
+      self.all_files = self._files.loc[:, cols].values
+
     self._files = self.split_data(self.all_files)
 
     self._size = self.get_size_in_samples()
@@ -179,16 +190,30 @@ class Speech2TextDataLayer(DataLayer):
       tuple: source audio features as ``np.array``, length of source sequence,
       target text as `np.array` of ids, target text length.
     """
-    audio_filename, transcript = element
-    if not six.PY2:
-      transcript = str(transcript, 'utf-8')
-    target = np.array([self.params['char2idx'][c] for c in transcript])
-    pad_to = self.params.get('pad_to', 8)
-    source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'], pad_to,
-      features_type=self.params['input_type'],
-      augmentation=self.params.get('augmentation', None),
-    )
+
+    if element = 'tmp':
+      fs = 16000
+      audio = (np.random.randn(int(self.params['dummy_duration']*fs)) * 32767.0).astype(np.int16)
+      pad_to = self.params.get('pad_to', 8)
+      source = get_speech_features(
+        audio, fs, self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
+      )
+      transcript = np.zeros(int(len(audio)/4))
+      target = np.array([self.params['char2idx'][c] for c in transcript])
+    else:
+      audio_filename, transcript = element
+      if not six.PY2:
+        transcript = str(transcript, 'utf-8')
+      target = np.array([self.params['char2idx'][c] for c in transcript])
+      pad_to = self.params.get('pad_to', 8)
+      source = get_speech_features_from_file(
+        audio_filename, self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
+      )
+
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
            np.int32([len(source)]), \
            np.int32(target), \
