@@ -72,7 +72,7 @@ class Speech2TextDataLayer(DataLayer):
 
 
     if self.params['dummy_batches']:
-      self.all_files = ['tmp'] * (self.params['batch_size'] * self.params['dummy_batches'])
+      self.all_files = [['dummy', '']] * (self.params['batch_size'] * self.params['dummy_batches'])
     else:
       self._files = None
       for csv in params['dataset_files']:
@@ -191,7 +191,7 @@ class Speech2TextDataLayer(DataLayer):
       target text as `np.array` of ids, target text length.
     """
 
-    if element == 'tmp':
+    if element[0] == 'dummy':
       fs = 16000
       audio = (np.random.randn(int(self.params['dummy_duration']*fs)) * 32767.0).astype(np.int16)
       pad_to = self.params.get('pad_to', 8)
