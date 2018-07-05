@@ -65,9 +65,10 @@ base_params = {
 
     "use_cudnn_rnn": True,
     "rnn_type": "cudnn_gru",
-    "rnn_unidirectional": False,
+    "rnn_unidirectional": True,
 
-    "row_conv": False,
+    "row_conv": True,
+    "row_conv_width": 8,
 
     "n_hidden": 0,
 
