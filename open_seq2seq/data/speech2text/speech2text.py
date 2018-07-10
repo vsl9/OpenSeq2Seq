@@ -200,7 +200,7 @@ class Speech2TextDataLayer(DataLayer):
         features_type=self.params['input_type'],
         augmentation=self.params.get('augmentation', None),
       )
-      transcript = np.zeros(int(len(audio)/4))
+      transcript = ['a'] * int(len(audio)/32)
       target = np.array([self.params['char2idx'][c] for c in transcript])
     else:
       audio_filename, transcript = element
