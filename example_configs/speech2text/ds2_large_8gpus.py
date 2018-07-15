@@ -15,6 +15,7 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 8,
   "batch_size_per_gpu": 16,
+  "iter_size": 1,
 
   "num_epochs": 50,
 
