@@ -168,7 +168,7 @@ class Speech2TextDataLayer(DataLayer):
           padded_shapes=([None, self.params['num_audio_features']], 1, 1)
       )
 
-    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+    self._iterator = self._dataset.prefetch(8)\
                          .make_initializable_iterator()
 
     if self.params['mode'] != 'infer':
