@@ -146,8 +146,17 @@ class Speech2Text(EncoderDecoderModel):
     '''
     with open(output_file, 'wb') as f:
       pickle.dump(res, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-    
+    '''
+    total_parameters = 0
+    #iterating over all variables
+    for variable in tf.trainable_variables():  
+      local_parameters=1
+      shape = variable.get_shape()  #getting shape of a variable
+      for i in shape:
+        local_parameters*=i.value  #mutiplying dimension values
+      total_parameters+=local_parameters
+    print(total_parameters)
+    '''
     '''
     pd.DataFrame(
       {
