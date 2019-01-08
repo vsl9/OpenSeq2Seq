@@ -51,10 +51,12 @@ class Speech2TextDataLayer(DataLayer):
     * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.
     * **dataset_files** (list) --- list with paths to all dataset .csv files.
     * **augmentation** (dict) --- optional dictionary with data augmentation
-      parameters. Can contain "time_stretch_ratio", "noise_level_min" and
-      "noise_level_max" parameters, e.g.::
+      parameters. Can contain "time_stretch_ratio", "automix_level", "min_time_delay",
+      "noise_level_min" and "noise_level_max" parameters, e.g.::
         {
           'time_stretch_ratio': 0.05,
+          'automix_level': -40,
+          'min_time_delay': 0.05,
           'noise_level_min': -90,
           'noise_level_max': -60,
         }

@@ -226,6 +226,15 @@ def augment_audio_signal(signal, sample_freq, augmentation):
         int(sample_freq * stretch_amount),
         filter='kaiser_fast',
     )
+  
+  # get automix level (in dB) or False
+  automix = augmentation.get('automix_level', False)
+  if automix:
+    min_offset = int(augmentation.get('min_time_delay', 0.05) * sample_freq)
+    max_offset = len(signal_float) - min_offset
+    time_offset = np.random.randint(min_offset, max_offset)
+    signal_float += np.roll(signal_float, time_offset) * \
+      10.0 ** (automix / 20.0)
 
   # noise
   noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
