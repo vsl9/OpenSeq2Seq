@@ -216,7 +216,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   """
   signal_float = normalize_signal(signal.astype(np.float32))
 
-  if augmentation['time_stretch_ratio'] > 0:
+  if augmentation.get('time_stretch_ratio', 0) > 0:
     # time stretch (might be slow)
     stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
                      augmentation['time_stretch_ratio']
@@ -237,10 +237,11 @@ def augment_audio_signal(signal, sample_freq, augmentation):
       10.0 ** (automix / 20.0)
 
   # noise
-  noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
-                                     high=augmentation['noise_level_max'])
-  signal_float += np.random.randn(signal_float.shape[0]) * \
-                  10.0 ** (noise_level_db / 20.0)
+  if augmentation.get('noise_level_max', False):
+    noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
+                                       high=augmentation['noise_level_max'])
+    signal_float += np.random.randn(signal_float.shape[0]) * \
+                    10.0 ** (noise_level_db / 20.0)
 
   return (normalize_signal(signal_float) * 32767.0).astype(np.int16)
 
