@@ -177,9 +177,6 @@ base_params = {
         "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
         "data_format": "channels_last",
 
-        "enable_rnn": False,
-        "rnn_cell_size": 256,
-        "rnn_layers": 1
     },
 
     "decoder": FullyConnectedCTCDecoder,
