@@ -212,7 +212,8 @@ train_params = {
         "dataset_files": dataset_files,
         "max_duration": 16.7,
         "shuffle": True,
-        "syn_ver": 3,
+        "syn_enable": True,
+        "syn_subdirs": ["1_50", "2_44", "3_47", "50", "46", "48"]
     },
 }
 
