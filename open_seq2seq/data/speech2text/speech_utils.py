@@ -232,9 +232,10 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   if automix:
     min_offset = int(augmentation.get('min_time_delay', 0.05) * sample_freq)
     max_offset = len(signal_float) - min_offset
-    time_offset = np.random.randint(min_offset, max_offset)
-    signal_float += np.roll(signal_float, time_offset) * \
-      10.0 ** (automix / 20.0)
+    if max_offset > min_offset:
+      time_offset = np.random.randint(min_offset, max_offset)
+      signal_float += np.roll(signal_float, time_offset) * \
+        10.0 ** (automix / 20.0)
 
   # noise
   if augmentation.get('noise_level_max', False):
