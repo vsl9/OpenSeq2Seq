@@ -24,6 +24,7 @@ base_params = {
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
     "logdir": "jasper_log_folder",
+    "num_checkpoints": 5,
 
     "optimizer": "Momentum",
     "optimizer_params": {
