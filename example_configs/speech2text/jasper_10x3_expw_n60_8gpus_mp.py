@@ -187,7 +187,7 @@ train_params = {
         "augmentation": {
             'noise_level_min': -90,
             'noise_level_max': -60,
-#            'time_stretch_ratio': 0.1,
+            'time_stretch_ratio': 0.0,
         },
         "syn_enable": False, # Change to True if using synthetic data
         "syn_subdirs": [], # Add subdirs of synthetic data
