@@ -224,7 +224,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
         signal_float,
         sample_freq,
         int(sample_freq * stretch_amount),
-        filter='kaiser_fast',
+        filter='kaiser_best',
     )
   
   # get automix level (in dB) or False
