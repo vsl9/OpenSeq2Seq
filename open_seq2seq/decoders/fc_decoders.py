@@ -245,7 +245,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
             logits, decoder_input['encoder_output']['src_length'],
             merge_repeated,
         )
-        return decoded
+        return logits
 
       self.params['logits_to_outputs_func'] = decode_without_lm
 
