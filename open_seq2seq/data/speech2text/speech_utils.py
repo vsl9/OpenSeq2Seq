@@ -316,7 +316,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         lowfreq=0, highfreq=None,
                         preemph=0.97,
                         ceplifter=2 * num_features,
-                        appendEnergy=False)
+                        appendEnergy=False,
+                        winfunc=np.hanning)
 
   elif features_type == 'logfbank':
     features = psf.logfbank(signal=signal,
@@ -326,7 +327,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                             nfilt=num_features,
                             nfft=512,
                             lowfreq=0, highfreq=sample_freq / 2,
-                            preemph=0.97)
+                            preemph=0.97,
+                            winfunc=np.hanning)
 
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
