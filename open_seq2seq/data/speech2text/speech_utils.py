@@ -227,14 +227,15 @@ def augment_audio_signal(signal, sample_freq, augmentation):
         signal_float,
         sample_freq,
         int(sample_freq * stretch_amount),
-        filter='kaiser_fast',
+        filter='kaiser_best',
     )
 
   # noise
-  noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
-                                     high=augmentation['noise_level_max'])
-  signal_float += np.random.randn(signal_float.shape[0]) * \
-                  10.0 ** (noise_level_db / 20.0)
+  if 'noise_level_min' and 'noise_level_max' in augmentation:
+    noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
+                                       high=augmentation['noise_level_max'])
+    signal_float += np.random.randn(signal_float.shape[0]) * \
+                    10.0 ** (noise_level_db / 20.0)
 
   return (normalize_signal(signal_float) * 32767.0).astype(np.int16)
 
@@ -267,15 +268,6 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
-    if 'time_stretch_ratio' not in augmentation:
-      raise ValueError('time_stretch_ratio has to be included in augmentation '
-                       'when augmentation it is not None')
-    if 'noise_level_min' not in augmentation:
-      raise ValueError('noise_level_min has to be included in augmentation '
-                       'when augmentation it is not None')
-    if 'noise_level_max' not in augmentation:
-      raise ValueError('noise_level_max has to be included in augmentation '
-                       'when augmentation it is not None')
     signal = augment_audio_signal(signal, sample_freq, augmentation)
   else:
     signal = (normalize_signal(signal.astype(np.float32)) * 32767.0).astype(
