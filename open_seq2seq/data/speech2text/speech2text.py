@@ -46,6 +46,9 @@ class Speech2TextDataLayer(DataLayer):
         'syn_subdirs': list,
         'window_size': float,
         'window_stride': float,
+        'dither': float,
+        'norm_per_feature': bool,
+        'window_type': ['hanning', 'hamming', 'none']
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -77,6 +80,7 @@ class Speech2TextDataLayer(DataLayer):
                                                num_workers, worker_id)
     # we need this until python_speech_features gets update on pypi.org
     self.apply_window = 'winfunc' in inspect.getargspec(psf.logfbank)[0]
+    self.window_fns = {"hanning": np.hanning, "hamming": np.hamming, "none": None}
     if not self.apply_window and \
         (self.params['input_type'] == 'mfcc' or \
          self.params['input_type'] == 'logfbank'):
@@ -353,10 +357,13 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window,
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
         cache_features=self.params.get('cache_features', False),
         cache_format=self.params.get('cache_format', 'hdf5'),
         cache_regenerate=self.params.get('cache_regenerate', False),
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', 512),
+        norm_per_feature=self.params.get('norm_per_feature', False),
         params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
@@ -381,7 +388,10 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', 512),
+        norm_per_feature=self.params.get('norm_per_feature', False)
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -404,7 +414,10 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', 512),
+        norm_per_feature=self.params.get('norm_per_feature', False)
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \

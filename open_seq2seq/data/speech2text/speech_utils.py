@@ -137,7 +137,10 @@ def get_speech_features_from_file(filename,
                                   window_size=20e-3,
                                   window_stride=10e-3,
                                   augmentation=None,
-                                  apply_window=False,
+                                  window_fn=None,
+                                  dither=0,
+                                  num_fft=512,
+                                  norm_per_feature=False,
                                   cache_features=False,
                                   cache_format="hdf5",
                                   cache_regenerate=False,
@@ -161,8 +164,14 @@ Args:
           'noise_level_min': -90,
           'noise_level_max': -46,
         }
-  apply_window (bool): whether to apply Hann window for mfcc and logfbank.
-        python_speech_features version should accept winfunc if it is True.
+  window_fn (bool): window function to apply, or None for no window
+        python_speech_features version should accept winfunc if not None.
+  dither (float): weight of Gaussian noise to apply to input signal for
+        dithering/preventing quantization noise
+  num_fft (int): size of fft window to use if features require fft
+  norm_per_feature (bool): if True, the output features will be normalized
+        (whitened) individually. if False, a global mean/std over all features
+        will be used for normalization
 Returns:
   np.array: np.array of audio features with shape=[num_time_steps,
   num_features].
@@ -183,14 +192,16 @@ Returns:
     sample_freq, signal = wave.read(filename)
     features, duration = get_speech_features(
         signal, sample_freq, num_features, pad_to, features_type,
-        window_size, window_stride, augmentation, apply_window
+        window_size, window_stride, augmentation, window_fn=window_fn,
+        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft
     )
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
     features, duration = get_speech_features(
         signal, sample_freq, num_features, pad_to, features_type,
-        window_size, window_stride, augmentation, apply_window
+        window_size, window_stride, augmentation, window_fn=window_fn,
+        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft
     )
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
     save_features(features, duration, preprocessed_data_path,
@@ -203,7 +214,7 @@ def normalize_signal(signal):
   """
   Normalize float32 signal to [-1, 1] range
   """
-  return signal / (np.max(np.abs(signal)) + 0.000001)
+  return signal / (np.max(np.abs(signal)) + 1e-5)
 
 
 def augment_audio_signal(signal, sample_freq, augmentation):
@@ -237,7 +248,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
     signal_float += np.random.randn(signal_float.shape[0]) * \
                     10.0 ** (noise_level_db / 20.0)
 
-  return (normalize_signal(signal_float) * 32767.0).astype(np.int16)
+  return normalize_signal(signal_float)
 
 
 def get_speech_features(signal, sample_freq, num_features, pad_to=8,
@@ -245,7 +256,10 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         window_size=20e-3,
                         window_stride=10e-3,
                         augmentation=None,
-                        apply_window=False):
+                        window_fn=np.hanning,
+                        num_fft=512,
+                        dither=0.0,
+                        norm_per_feature=False):
   """Function to convert raw audio signal to numpy array of features.
 
   Args:
@@ -268,10 +282,9 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
-    signal = augment_audio_signal(signal, sample_freq, augmentation)
+    signal = augment_audio_signal(signal.astype(np.float32), sample_freq, augmentation)
   else:
-    signal = (normalize_signal(signal.astype(np.float32)) * 32767.0).astype(
-        np.int16)
+    signal = normalize_signal(signal.astype(np.float32))
 
   audio_duration = len(signal) * 1.0 / sample_freq
 
@@ -282,10 +295,17 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
   length = 1 + int(math.ceil(
       (1.0 * signal.shape[0] - n_window_size) / n_window_stride
   ))
+
   if pad_to > 0:
     if length % pad_to != 0:
       pad_size = (pad_to - length % pad_to) * n_window_stride
       signal = np.pad(signal, (0, pad_size), mode='constant')
+
+  if dither > 0:
+    signal += dither*np.random.randn(*signal.shape)
+    
+  # make int16
+  signal = (signal * 32767.0).astype(np.int16)
 
   if features_type == 'spectrogram':
     frames = psf.sigproc.framesig(sig=signal,
@@ -302,19 +322,19 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     features = features[:, :num_features]
 
   elif features_type == 'mfcc':
-    if apply_window:
+    if window_fn is not None:
       features = psf.mfcc(signal=signal,
                           samplerate=sample_freq,
                           winlen=window_size,
                           winstep=window_stride,
                           numcep=num_features,
                           nfilt=2 * num_features,
-                          nfft=512,
+                          nfft=num_fft,
                           lowfreq=0, highfreq=None,
                           preemph=0.97,
                           ceplifter=2 * num_features,
                           appendEnergy=False,
-                          winfunc=np.hanning)
+                          winfunc=window_fn)
     else:
       features = psf.mfcc(signal=signal,
                           samplerate=sample_freq,
@@ -322,39 +342,38 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                           winstep=window_stride,
                           numcep=num_features,
                           nfilt=2 * num_features,
-                          nfft=512,
+                          nfft=num_fft,
                           lowfreq=0, highfreq=None,
                           preemph=0.97,
                           ceplifter=2 * num_features,
                           appendEnergy=False)
 
   elif features_type == 'logfbank':
-    if apply_window:
+    if window_fn is not None:
       features = psf.logfbank(signal=signal,
                               samplerate=sample_freq,
                               winlen=window_size,
                               winstep=window_stride,
                               nfilt=num_features,
-                              nfft=512,
+                              nfft=num_fft,
                               lowfreq=0, highfreq=sample_freq / 2,
                               preemph=0.97,
-                              winfunc=np.hanning)
+                              winfunc=window_fn)
     else:
       features = psf.logfbank(signal=signal,
                               samplerate=sample_freq,
                               winlen=window_size,
                               winstep=window_stride,
                               nfilt=num_features,
-                              nfft=512,
+                              nfft=num_fft,
                               lowfreq=0, highfreq=sample_freq / 2,
                               preemph=0.97)
 
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
-  #if pad_to > 0:
-  #  assert features.shape[0] % pad_to == 0
-  mean = np.mean(features)
-  std_dev = np.std(features)
+  norm_axis = 0 if norm_per_feature else None
+  mean = np.mean(features, axis=norm_axis)
+  std_dev = np.std(features, axis=norm_axis)
   features = (features - mean) / std_dev
   return features, audio_duration
