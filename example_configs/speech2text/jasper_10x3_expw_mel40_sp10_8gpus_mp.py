@@ -192,6 +192,9 @@ train_params = {
         "syn_enable": False, # Change to True if using synthetic data
         "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
+        "dither": 1e-5,
+        "norm_per_feature": True,
+        "window_type": 'hamming',
         "shuffle": True,
     },
 }
@@ -205,6 +208,9 @@ eval_params = {
         "dataset_files": [
             "/data/WSJ/dev_93.csv"
         ],
+        "dither": 1e-5,
+        "norm_per_feature": True,
+        "window_type": 'hamming',
         "shuffle": False,
     },
 }
@@ -218,6 +224,9 @@ infer_params = {
         "dataset_files": [
             "/data/WSJ/eval_92.csv"
         ],
+        "dither": 1e-5,
+        "norm_per_feature": True,
+        "window_type": 'hamming',
         "shuffle": False,
     },
 }
