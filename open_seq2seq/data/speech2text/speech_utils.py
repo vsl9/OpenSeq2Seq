@@ -10,6 +10,7 @@ import numpy as np
 import python_speech_features as psf
 import resampy as rs
 import scipy.io.wavfile as wave
+import librosa
 
 
 class PreprocessOnTheFlyException(Exception):
@@ -251,6 +252,10 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   return normalize_signal(signal_float)
 
 
+def preemphasis(signal, coeff=0.97):
+  return np.append(signal[0], signal[1:] - coeff * signal[:-1])
+
+
 def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         features_type='spectrogram',
                         window_size=20e-3,
@@ -303,9 +308,6 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
 
   if dither > 0:
     signal += dither*np.random.randn(*signal.shape)
-    
-  # make int16
-  signal = (signal * 32767.0).astype(np.int16)
 
   if features_type == 'spectrogram':
     frames = psf.sigproc.framesig(sig=signal,
@@ -322,53 +324,26 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     features = features[:, :num_features]
 
   elif features_type == 'mfcc':
-    if window_fn is not None:
-      features = psf.mfcc(signal=signal,
-                          samplerate=sample_freq,
-                          winlen=window_size,
-                          winstep=window_stride,
-                          numcep=num_features,
-                          nfilt=2 * num_features,
-                          nfft=num_fft,
-                          lowfreq=0, highfreq=None,
-                          preemph=0.97,
-                          ceplifter=2 * num_features,
-                          appendEnergy=False,
-                          winfunc=window_fn)
-    else:
-      features = psf.mfcc(signal=signal,
-                          samplerate=sample_freq,
-                          winlen=window_size,
-                          winstep=window_stride,
-                          numcep=num_features,
-                          nfilt=2 * num_features,
-                          nfft=num_fft,
-                          lowfreq=0, highfreq=None,
-                          preemph=0.97,
-                          ceplifter=2 * num_features,
-                          appendEnergy=False)
-
+    features = psf.mfcc(signal=signal,
+                        samplerate=sample_freq,
+                        winlen=window_size,
+                        winstep=window_stride,
+                        numcep=num_features,
+                        nfilt=2 * num_features,
+                        nfft=num_fft,
+                        lowfreq=0, highfreq=None,
+                        preemph=0.97,
+                        ceplifter=2 * num_features,
+                        appendEnergy=False,
+                        winfunc=window_fn)
   elif features_type == 'logfbank':
-    if window_fn is not None:
-      features = psf.logfbank(signal=signal,
-                              samplerate=sample_freq,
-                              winlen=window_size,
-                              winstep=window_stride,
-                              nfilt=num_features,
-                              nfft=num_fft,
-                              lowfreq=0, highfreq=sample_freq / 2,
-                              preemph=0.97,
-                              winfunc=window_fn)
-    else:
-      features = psf.logfbank(signal=signal,
-                              samplerate=sample_freq,
-                              winlen=window_size,
-                              winstep=window_stride,
-                              nfilt=num_features,
-                              nfft=num_fft,
-                              lowfreq=0, highfreq=sample_freq / 2,
-                              preemph=0.97)
-
+    signal = preemphasis(signal,coeff=0.97)
+    S = np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
+                        win_length=int(window_size * sample_freq), center=True,
+                        window=window_fn))**2.0
+    # Build a Mel filter
+    mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features, fmin=0, fmax=int(sample_freq/2))
+    features = np.log(np.dot(mel_basis, S) + 1e-20).T
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
