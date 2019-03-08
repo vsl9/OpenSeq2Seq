@@ -231,7 +231,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   """
   signal_float = normalize_signal(signal.astype(np.float32))
 
-  if augmentation['time_stretch_ratio'] > 0:
+  if 'time_stretch_ratio' in augmentation and augmentation['time_stretch_ratio'] > 0:
     # time stretch (might be slow)
     stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
                      augmentation['time_stretch_ratio']
