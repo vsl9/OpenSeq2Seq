@@ -12,4 +12,3 @@ sentencepiece
 sacrebleu
 h5py
 tqdm
-librosa
