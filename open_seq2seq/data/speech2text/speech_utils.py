@@ -352,7 +352,7 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         win_length=int(window_size * sample_freq), center=True,
                         window=window_fn))**2.0
     # Build a Mel filter
-    mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features, fmin=0, fmax=int(sample_freq/2))
+    mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features, fmin=200, fmax=4000)
     features = np.log(np.dot(mel_basis, S) + 1e-20).T
   elif features_type == 'logfbank_psf':
     features = psf.logfbank(signal=signal,
