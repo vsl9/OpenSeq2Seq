@@ -347,7 +347,7 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         appendEnergy=False,
                         winfunc=window_fn)
   elif features_type == 'logfbank':
-    signal = preemphasis(signal,coeff=0.97)
+    # signal = preemphasis(signal,coeff=0.97)
     S = np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
                         win_length=int(window_size * sample_freq), center=True,
                         window=window_fn))**2.0
