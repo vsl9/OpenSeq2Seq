@@ -111,7 +111,7 @@ base_params = {
             'uniform': False,
         },
         "normalization": "batch_norm",
-        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "activation_fn": lambda x: tf.nn.relu(x),
         "data_format": "channels_last",
     },
 
