@@ -26,16 +26,21 @@ base_params = {
     "num_checkpoints": 5,
     "logdir": "jasper_log_folder",
 
-    "optimizer": "Momentum",
+    "optimizer": NovoGrad,
     "optimizer_params": {
-        "momentum": 0.90,
+        "beta1": 0.95,
+        "beta2": 0.98,
+        "epsilon": 1e-08,
+        "weight_decay": 0.001,
+        "grad_averaging": False,
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,
+        "learning_rate": 0.02,
         "min_lr": 1e-5,
         "power": 2.0,
     },
+
     "larc_params": {
         "larc_eta": 0.001,
     },
@@ -153,6 +158,7 @@ base_params = {
         "normalization": "batch_norm",
         "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
         "data_format": "channels_last",
+        "use_conv_mask": True,
     },
 
     "decoder": FullyConnectedCTCDecoder,
@@ -193,6 +199,9 @@ train_params = {
         "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
         "shuffle": True,
+        "precompute_mel_basis": True,
+        "sample_freq": 16000,
+        "pad_to": 16
     },
 }
 
