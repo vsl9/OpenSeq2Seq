@@ -6,6 +6,7 @@ from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.novograd import NovoGrad
 
 base_model = Speech2Text
 
