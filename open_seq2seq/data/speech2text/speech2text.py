@@ -378,7 +378,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")],
+        window_fn=self.window_fns[self.params.get('window_type', "hanning")],
         cache_features=self.params.get('cache_features', False),
         cache_format=self.params.get('cache_format', 'hdf5'),
         cache_regenerate=self.params.get('cache_regenerate', False),
