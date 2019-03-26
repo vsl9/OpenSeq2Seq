@@ -65,70 +65,70 @@ base_params = {
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": True
             },
             {
                 "type": "conv1d", "repeat": 1,
