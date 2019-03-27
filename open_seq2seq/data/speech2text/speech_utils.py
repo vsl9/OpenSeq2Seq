@@ -131,7 +131,7 @@ def get_preprocessed_data_path(filename, params):
 
 
 def get_speech_features_from_file(filename,
-                                  num_features,
+                                  num_features, pad_to=16,
                                   features_type='spectrogram',
                                   window_size=20e-3,
                                   window_stride=10e-3,
@@ -197,7 +197,7 @@ Returns:
                                                     sample_freq, filename)
       )
     features, duration = get_speech_features(
-        signal, sample_freq, num_features, features_type,
+        signal, sample_freq, num_features, pad_to, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
         dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft,
         mel_basis=mel_basis
@@ -269,7 +269,7 @@ def preemphasis(signal, coeff=0.97):
   return np.append(signal[0], signal[1:] - coeff * signal[:-1])
 
 
-def get_speech_features(signal, sample_freq, num_features,
+def get_speech_features(signal, sample_freq, num_features, pad_to=16,
                         features_type='spectrogram',
                         window_size=20e-3,
                         window_stride=10e-3,
@@ -361,9 +361,9 @@ def get_speech_features(signal, sample_freq, num_features,
   features = (features - mean) / std_dev
 
   # now it is safe to pad
-  # if pad_to > 0:
-  #   if features.shape[0] % pad_to != 0:
-  #     pad_size = pad_to - features.shape[0] % pad_to
-  #     if pad_size != 0:
-  #         features = np.pad(features, ((0,pad_size), (0,0)), mode='constant')
+  if pad_to > 0:
+    if features.shape[0] % pad_to != 0:
+      pad_size = pad_to - features.shape[0] % pad_to
+      if pad_size != 0:
+        features = np.pad(features, ((0,pad_size), (0,0)), mode='constant')
   return features, audio_duration

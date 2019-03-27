@@ -265,10 +265,10 @@ class Speech2TextDataLayer(DataLayer):
                    self.params['num_audio_features']])
       x_length = tf.reshape(x_length, [self.params['batch_size']])
 
-      pad_to = self.params.get("pad_to", 8)
-      if pad_to > 0:
-        num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
-        x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
+      # pad_to = self.params.get("pad_to", 8)
+      # if pad_to > 0:
+      #  num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
+      #  x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
 
       self._input_tensors = {}
       self._input_tensors["source_tensors"] = [x, x_length]
@@ -373,7 +373,7 @@ class Speech2TextDataLayer(DataLayer):
       audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'],
+        audio_filename, self.params['num_audio_features'], self.params.get('pad_to', 16),
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -404,7 +404,7 @@ class Speech2TextDataLayer(DataLayer):
       sample id.
     """
     source, audio_duration = get_speech_features(
-        wav, 16000., self.params['num_audio_features'],
+        wav, 16000., self.params['num_audio_features'], self.params.get('pad_to', 16),
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -430,7 +430,7 @@ class Speech2TextDataLayer(DataLayer):
     """
     idx, audio_filename = id_and_audio_filename
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'],
+        audio_filename, self.params['num_audio_features'], self.params.get('pad_to', 16),
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
