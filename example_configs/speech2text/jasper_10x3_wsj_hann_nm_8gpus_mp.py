@@ -153,7 +153,7 @@ base_params = {
         "normalization": "batch_norm",
         "activation_fn": tf.nn.relu,
         "data_format": "channels_last",
-        "use_conv_mask": True,
+        "use_conv_mask": False,
     },
 
     "decoder": FullyConnectedCTCDecoder,
