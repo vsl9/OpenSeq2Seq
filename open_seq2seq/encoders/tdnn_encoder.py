@@ -27,6 +27,7 @@ class TDNNEncoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
         'data_format': ['channels_first', 'channels_last'],
+        'use_4d': bool,
         'normalization': [None, 'batch_norm', 'layer_norm', 'instance_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
@@ -128,6 +129,7 @@ class TDNNEncoder(Encoder):
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
+    use_4d = self.params.get('use_4d', False)
     normalization = self.params.get('normalization', 'batch_norm')
 
     drop_block_prob = self.params.get('drop_block_prob', 0.0)
@@ -141,6 +143,9 @@ class TDNNEncoder(Encoder):
           dtype=source_sequence.dtype
       )
       mask = tf.expand_dims(mask, 2)
+      if use_4d:
+        # B T 1 => B 1 T 1
+        mask = tf.expand_dims(mask, 1)
 
     if normalization is None:
       conv_block = conv_actv
@@ -159,8 +164,12 @@ class TDNNEncoder(Encoder):
     conv_inputs = source_sequence
     if data_format == 'channels_last':
       conv_feats = conv_inputs  # B T F
+      if use_4d:
+        conv_feats = tf.expand_dims(conv_feats, 1)
     else:
       conv_feats = tf.transpose(conv_inputs, [0, 2, 1])  # B F T
+      if use_4d:
+        conv_feats = tf.expand_dims(conv_feats, 3)
 
     residual_aggregation = []
 
@@ -213,6 +222,9 @@ class TDNNEncoder(Encoder):
               dtype=conv_feats.dtype
           )
           mask = tf.expand_dims(mask, 2)
+          if use_4d:
+            # B T 1 => B 1 T 1
+            mask = tf.expand_dims(mask, 1)
 
         if residual and idx_layer == layer_repeat - 1:
           conv_feats = conv_bn_res_bn_actv(
@@ -222,11 +234,11 @@ class TDNNEncoder(Encoder):
               inputs=conv_feats,
               res_inputs=layer_res,
               filters=ch_out,
-              kernel_size=kernel_size,
+              kernel_size=kernel_size if not use_4d else [1] + kernel_size,
               activation_fn=self.params['activation_fn'],
-              strides=strides,
+              strides=strides if not use_4d else [1] + strides,
               padding=padding,
-              dilation=dilation,
+              dilation=dilation if not use_4d else [1] + dilation,
               regularizer=regularizer,
               training=training,
               data_format=data_format,
@@ -241,11 +253,11 @@ class TDNNEncoder(Encoder):
                   idx_convnet + 1, idx_layer + 1),
               inputs=conv_feats,
               filters=ch_out,
-              kernel_size=kernel_size,
+              kernel_size=kernel_size if not use_4d or layer_type=='sep_conv1d_4d' else [1] + kernel_size,
               activation_fn=self.params['activation_fn'],
-              strides=strides,
+              strides=strides if not use_4d or layer_type=='sep_conv1d_4d' else [1] + strides,
               padding=padding,
-              dilation=dilation,
+              dilation=dilation if not use_4d or layer_type=='sep_conv1d_4d' else [1] + dilation,
               regularizer=regularizer,
               training=training,
               data_format=data_format,
@@ -257,7 +269,10 @@ class TDNNEncoder(Encoder):
     outputs = conv_feats
 
     if data_format == 'channels_first':
+      outputs = tf.squeeze(outputs, 3)
       outputs = tf.transpose(outputs, [0, 2, 1])
+    else:
+      outputs = tf.squeeze(outputs, 1)
 
     return {
         'outputs': outputs,

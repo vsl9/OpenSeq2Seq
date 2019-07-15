@@ -11,7 +11,9 @@ from .tcn import tcn
 layers_dict = {
     "conv1d": tf.layers.conv1d,
     "sep_conv1d": tf.layers.separable_conv1d,
+    "sep_conv1d_4d": tf.layers.separable_conv1d,
     "conv2d": tf.layers.conv2d,
+    "sep_conv2d": tf.layers.separable_conv2d,
     "tcn": tcn,
 }
 
@@ -25,7 +27,7 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
   """
   layer = layers_dict[layer_type]
 
-  if layer_type == 'sep_conv1d':
+  if "sep_" in layer_type:
     conv = layer(
         name="{}".format(name),
         inputs=inputs,
@@ -102,7 +104,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
 
     res_aggregation += res
 
-  if layer_type == "sep_conv1d":
+  if "sep_" in layer_type:
     conv = layer(
         name="{}".format(name),
         inputs=inputs,
@@ -177,7 +179,10 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
   """
   layer = layers_dict[layer_type]
 
-  if layer_type == 'sep_conv1d':
+  if layer_type == "sep_conv1d_4d":
+    inputs = tf.squeeze(inputs, 1)
+
+  if "sep_" in layer_type:
     conv = layer(
         name="{}".format(name),
         inputs=inputs,
@@ -205,13 +210,14 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
         data_format=data_format,
     )
 
+
   # trick to make batchnorm work for mixed precision training.
   # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
   if "conv1d" in layer_type:
     axis = 1 if data_format == 'channels_last' else 2
     conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
-    squeeze = True
+    squeeze = True and layer_type != "sep_conv1d_4d"
 
   bn = tf.layers.batch_normalization(
       name="{}/bn".format(name),
